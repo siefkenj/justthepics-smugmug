@@ -12,6 +12,7 @@ var MAX_POLL_COUNT = 30;
 var pollCount = 0;
 
 console = unsafeWindow.console;
+console.log('running greasemonkey script');
 
 // extends a with the attributes of b
 function extend(a,b) {
@@ -50,6 +51,14 @@ function identifyGalleryType() {
             continue;
         }
         var textContent = script.textContent;
+        // newer API (this check needs to be first)
+        m = textContent.match(/galleryConfig.*({.*?})/);
+        if (m) {
+            console.log('newer api', m[1]);
+            params = JSON.parse(m[1]);
+            console.log({type: params['galleryType'], params: params});
+            return {type: params['galleryType'], params: params};
+        }
         // new API
         m = textContent.match(/galleryRequestData.*({.*})/);
         if (m) {
@@ -83,13 +92,19 @@ init();
 function init() {
     "use strict";
 
-    var galleryType = identifyGalleryType();
+    var galleryType;
+    try {
+        galleryType = identifyGalleryType();
+    } catch (e) {
+        console.log(e);
+    }
+
     console.log('gal type', galleryType);
     if (galleryType == null) {
         return;
     }
 
-    if (galleryType.type === "SmugMugView" || galleryType.type === "RowOrganicView" || galleryType.type === "ColumnOrganicView" || galleryType.type == "Classic") {
+    if (galleryType.type === "SmugMugView" || galleryType.type === "ThumbnailView" || galleryType.type === "RowOrganicView" || galleryType.type === "ColumnOrganicView" || galleryType.type === "JournalView" || galleryType.type === "Classic" || galleryType.type == "album") {
         // track all of the XMLHttpRequest's made by the real page,
         // because we want to cancel most of them
         (function(open, send) {
@@ -139,7 +154,7 @@ function init() {
                         var parent = document.querySelector('.sm-gallery-images') || document.querySelector('#photos') ||document.body;
                         makeGallery(data, preparePage, parent);
                     } catch (e) {
-
+                        console.log(e)
                     }
                 }
             }
@@ -176,6 +191,7 @@ function makeGallery(data, preparePage, parent) {
             } else {
                 elm.textContent = " " + (i+1) + " ";
             }
+	    elm.setAttribute('style','letter-spacing: 0em;')
             elm.onclick = function(i){
                 return function() {
                     preparePage(i + 1);
@@ -195,10 +211,25 @@ function makeGallery(data, preparePage, parent) {
         var m = url.match(/PreFetchURL=(.*)/)
         return m[1];
     }
+    var getMaxSizeAvailable = function(sizes) {
+        var ret = 'O';
+        var width = 0;
+        for (var s in sizes) {
+            if (sizes[s].usable && (sizes[s].width > width)) {
+                ret = s;
+                width = sizes[s].width;
+            }
+        }
+        return ret;
+    };
     for (i = 0; i < data.Images.length; i++) {
         var image = data.Images[i];
-        var OUrl = trimPrefetchURL(image.PreFetchURLs[0]);
-        var thumbUrl = trimPrefetchURL(image.PreFetchURLs[image.PreFetchURLs.length - 1]);
+        var largestSize = getMaxSizeAvailable(image.Sizes);
+        var OUrl = image.BaseUrl + "i-" + image.ImageKey + "/" + image.Serial + "/" + largestSize + "/" + image.URLFilename + "." + image.Format;
+        var thumbUrl = image.BaseUrl + "i-" + image.ImageKey + "/" + image.Serial + "/Th/" + image.URLFilename + "." + image.Format;
+        // Stopped working May 9, 2014
+        //var OUrl = trimPrefetchURL(image.PreFetchURLs[0]);
+        //var thumbUrl = trimPrefetchURL(image.PreFetchURLs[image.PreFetchURLs.length - 1]);
         
         var elm = document.createElement('img')
         elm.setAttribute('src', thumbUrl);
@@ -213,7 +244,7 @@ function makeGallery(data, preparePage, parent) {
     for (i = 0; i < elms.length; i++) {
         container.appendChild(elms[i]);
     }
-    originalBody.appendChild(createNavLinks(data));
+    originalBody.appendChild(createNavLinks(data)); 
     originalBody.appendChild(container);
     console.log('gal', container)
 
@@ -221,13 +252,13 @@ function makeGallery(data, preparePage, parent) {
 
 
 //console.log("yo!", document.body.getAttribute('class'));
-//var timeout = setTimeout(doReplace, 2000);
+var timeout = setTimeout(doReplace, 2000);
 
 // Legacy stuff
-doReplace();
+//doReplace();
 
 function doReplace() {
-    //clearTimeout(timeout);
+    clearTimeout(timeout);
     //since we need to be active for all url's, first figure out if we're on 
     //a smugmug page
     if(typeof(unsafeWindow.SM) != "undefined"){  //unsafeWindow.SM doesn't load fast enough anymore...
