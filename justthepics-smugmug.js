@@ -2,7 +2,8 @@
 // @name            justthepics-smugmug
 // @namespace       http://smugmug.com
 // @description     Displays the original image even when spaceball.gif tries to mess things up.
-// @include         http:*smugmug.com/*
+// @include         //*smugmug.com/*
+// @grant           unsafeWindow
 // ==/UserScript==
 
 //alert('Hello worldfsdd!');
@@ -13,6 +14,25 @@ var pollCount = 0;
 
 console = unsafeWindow.console;
 console.log('running greasemonkey script');
+
+// Check to see if we're on a smugmug page
+var scripts = document.querySelectorAll('script'), script, src, m, i, foundSmugmug = false;
+for (i = 0; i < scripts.length; i++) {
+    script = scripts[i];
+    // we're only interested in embedded scripts
+    if (src = script.getAttribute('src')) {
+        if (src.match(/smugmug.com/)) {
+	    foundSmugmug = true;
+	    break;
+	}
+    }
+}
+
+if (!foundSmugmug) {
+	console.log("didn't find smugmug content");
+	return;
+}
+
 
 // extends a with the attributes of b
 function extend(a,b) {
@@ -43,7 +63,7 @@ function identifyGalleryType() {
 
     // Run through the scripts included on the page and use a heuristic
     // to decide new api vs. old
-    var scripts = document.querySelectorAll('script'), script, m, params, i;
+    var scripts = document.body.querySelectorAll('script'), script, m, params, i;
     for (i = 0; i < scripts.length; i++) {
         script = scripts[i];
         // we're only interested in embedded scripts
