@@ -1,5 +1,5 @@
 .App {
-    text-align: center;
+    letter-spacing: normal;
 }
 
 .App-logo {
@@ -19,4 +19,38 @@
 
 .App-link {
     color: #09d3ac;
+}
+
+.justthepics-gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, 150px);
+    gap: 5px;
+    align-items: center;
+    justify-items: center;
+}
+
+.justthepics-link {
+    position: relative;
+}
+
+.justthepics-size-annotation {
+    /*position: absolute;*/
+    left: 0;
+    top: 0;
+    padding: 2px;
+    background: rgba(255, 255, 255, 0.5);
+    color: black;
+    font-size: x-small;
+    letter-spacing: unset;
+}
+
+html.justthepics-image-container,
+html.justthepics-image-container body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+html.justthepics-image-container body {
+    overflow: auto;
+    text-align: center;
 }
