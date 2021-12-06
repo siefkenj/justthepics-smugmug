@@ -57,8 +57,9 @@ function App() {
                 {info.Images.map((image) => {
                     const largest = imageToLargest(image);
                     const details = image.Sizes[largest.size];
+                    const canDownload = image.CanDownload && !image.HasDownloadPassword
                     let url = largest.url;
-                    if (image.CanDownload) {
+                    if (canDownload) {
                         // The image download url automatically prompts the browser to be downloaded.
                         // We want to view the image instead, so we need to proxy it through a special URL
                         // which gets grabbed by a different part of our script.
@@ -75,12 +76,12 @@ function App() {
                         <a
                             href={url}
                             className={`justthepics-size-${
-                                image.CanDownload ? "D" : largest.size
+                                canDownload ? "D" : largest.size
                             } justthepics-link`}
                             key={image.ImageKey}
                         >
                             <div className="justthepics-size-annotation">
-                                {image.CanDownload ? "D" : largest.size}{" "}
+                                {canDownload ? "D" : largest.size}{" "}
                                 {details.width}✕{details.height}
                             </div>
                             <img src={imageToThumbUrl(image)} alt="" />
