@@ -57,9 +57,13 @@ function App() {
                 {info.Images.map((image) => {
                     const largest = imageToLargest(image);
                     const details = image.Sizes[largest.size];
-                    const canDownload = image.CanDownload && !image.HasDownloadPassword
+                    const canDownload =
+                        image.CanDownload && !image.HasDownloadPassword;
                     let url = largest.url;
-                    if (canDownload) {
+                    if (image.IsVideo) {
+                        url = details.url || url;
+                    }
+                    if (canDownload && image.IsVideo) {
                         // The image download url automatically prompts the browser to be downloaded.
                         // We want to view the image instead, so we need to proxy it through a special URL
                         // which gets grabbed by a different part of our script.
@@ -72,17 +76,20 @@ function App() {
                         );
                         url = newUrl.href;
                     }
+                    let annotation = canDownload ? "D" : largest.size;
+                    if (image.IsVideo) {
+                        annotation = "🎥"
+                    }
                     return (
                         <a
                             href={url}
                             className={`justthepics-size-${
                                 canDownload ? "D" : largest.size
-                            } justthepics-link`}
+                            } justthepics-link ${image.IsVideo ? "video" : ""}`}
                             key={image.ImageKey}
                         >
                             <div className="justthepics-size-annotation">
-                                {canDownload ? "D" : largest.size}{" "}
-                                {details.width}✕{details.height}
+                                {annotation} {details.width}✕{details.height}
                             </div>
                             <img src={imageToThumbUrl(image)} alt="" />
                         </a>

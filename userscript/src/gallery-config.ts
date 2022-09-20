@@ -50,6 +50,10 @@ function getLargestImageSize(image: Image) {
     let largestWidth = 0;
     let largestSize = "Th";
     for (const [size, details] of Object.entries(image.Sizes)) {
+        // For video we want to skip all the jpg sizes.
+        if (image.IsVideo && details.ext !== "mp4") {
+            continue;
+        }
         if (details.usable && details.width > largestWidth) {
             largestWidth = details.width;
             largestSize = size;
@@ -133,6 +137,7 @@ interface Size {
     width: number;
     height: number;
     ext: string;
+    url?: string;
 }
 type Sizes = { [key in SizeKeys]: Size };
 interface Image {
