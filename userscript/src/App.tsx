@@ -63,7 +63,7 @@ function App() {
                     if (image.IsVideo) {
                         url = details.url || url;
                     }
-                    if (canDownload && image.IsVideo) {
+                    if (canDownload && !image.IsVideo) {
                         // The image download url automatically prompts the browser to be downloaded.
                         // We want to view the image instead, so we need to proxy it through a special URL
                         // which gets grabbed by a different part of our script.
